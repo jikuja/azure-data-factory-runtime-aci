@@ -10,6 +10,10 @@ By using this approach, you can gain the benefits of
 * using a self-hosted integration runtime while avoiding having to manage virtual machines or other infrastructure
 * orchestrating ACI up and down when needed
 
+## Related work
+
+* This sample is fork from [https://github.com/Azure-Samples/azure-data-factory-runtime-app-service](https://github.com/Azure-Samples/azure-data-factory-runtime-app-service)
+
 ## Approach and architecture
 
 This sample runs the self-hosted integration in a Windows container on ACI. Azure Data Factory [supports running a self-hosted integration runtime on Windows containers](https://docs.microsoft.com/azure/data-factory/how-to-run-self-hosted-integration-runtime-in-windows-container), and [they provide a GitHub repository](https://github.com/Azure/Azure-Data-Factory-Integration-Runtime-in-Windows-Container) with a Dockerfile and associated scripts. Azure Container Registry builds the Dockerfile by using [ACR tasks](https://docs.microsoft.com/azure/container-registry/container-registry-tasks-overview).
