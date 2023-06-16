@@ -84,6 +84,7 @@ resource pipeline2 'Microsoft.DataFactory/factories/pipelines@2018-06-01' = {
             userProperties: []
             typeProperties: {
               url: {
+                #disable-next-line  no-hardcoded-env-urls
                 value: '@concat(\'https://management.azure.com\',pipeline().globalParameters.adfId,\'/integrationRuntimes/self-hosted-runtime/getStatus?api-version=2018-06-01\')'
                 type: 'Expression'
               }
@@ -92,6 +93,7 @@ resource pipeline2 'Microsoft.DataFactory/factories/pipelines@2018-06-01' = {
               body: '""'
               authentication: {
                 type: 'MSI'
+                #disable-next-line  no-hardcoded-env-urls
                 resource: 'https://management.azure.com/'
               }
             }
@@ -123,6 +125,7 @@ resource pipeline2 'Microsoft.DataFactory/factories/pipelines@2018-06-01' = {
       userProperties: []
       typeProperties: {
         url: {
+          #disable-next-line  no-hardcoded-env-urls
           value: '@concat(\'https://management.azure.com\',pipeline().globalParameters.aciId,\'/start?api-version=2022-09-01\')'
           type: 'Expression'
         }
@@ -131,6 +134,7 @@ resource pipeline2 'Microsoft.DataFactory/factories/pipelines@2018-06-01' = {
         body: '""'
         authentication: {
           type: 'MSI'
+          #disable-next-line  no-hardcoded-env-urls
           resource: 'https://management.azure.com/'
         }
       }
@@ -138,6 +142,8 @@ resource pipeline2 'Microsoft.DataFactory/factories/pipelines@2018-06-01' = {
   ]
   policy: {
     elapsedTimeMetric: {}
+    // Data factory generated ARM/Bicep does not match with schemas
+    #disable-next-line BCP037
     cancelAfter: {}
   }
   annotations: []
