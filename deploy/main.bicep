@@ -142,6 +142,7 @@ module aci 'modules/aci.bicep' = {
     acrId: acr.outputs.id
     adfId: adf.outputs.id
     irID: adf.outputs.irid
+    loginServer: acr.outputs.loginServer
   }
 }
 

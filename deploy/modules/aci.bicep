@@ -98,6 +98,7 @@ param image string
 param acrId string
 param adfId string
 param irID string
+param loginServer string
 
 var identityType = systemAssignedIdentity ? (!empty(userAssignedIdentities) ? 'SystemAssigned,UserAssigned' : 'SystemAssigned') : (!empty(userAssignedIdentities) ? 'UserAssigned' : 'None')
 
@@ -114,7 +115,8 @@ var containers = [
       environmentVariables: [
         {
           name: 'AUTH_KEY'
-          secureValue: existingIr.listAuthKeys().authKey1
+          //secureValue: existingIr.listAuthKeys().authKey1
+          secureValue: listAuthKeys(irID, 'Microsoft.DataFactory/factories/integrationRuntimes@2018-06-01')
         }
         {
           name: 'NODE_NAME'
@@ -158,22 +160,16 @@ var containers = [
   }
 ]
 
-resource existingAcr 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' existing = {
-  name: last(split(acrId, '/'))
-}
-
 @description('Optional. The image registry credentials by which the container group is created from.')
 var imageRegistryCredentials = [
   {
-  server: existingAcr.properties.loginServer
-  username: existingAcr.listCredentials().username
-  password: existingAcr.listCredentials().passwords[0].value
+  server: loginServer
+  //username: existingAcr.listCredentials().username
+  username: listCredentials(acrId, 'Microsoft.ContainerRegistry/registries@2021-06-01-preview').username
+  //password: existingAcr.listCredentials().passwords[0].value
+  password: listCredentials(acrId, 'Microsoft.ContainerRegistry/registries@2021-06-01-preview').passwords[0].value
   }
 ]
-
-resource existingIr 'Microsoft.DataFactory/factories/integrationRuntimes@2018-06-01' existing = {
-  name: '${last(split(adfId, '/'))}/${last(split(irID, '/'))}'
-}
 
 resource defaultTelemetry 'Microsoft.Resources/deployments@2021-04-01' = if (enableDefaultTelemetry) {
   name: 'pid-47ed15a6-730a-4827-bcb4-0fd963ffbd82-${uniqueString(deployment().name, location)}'
