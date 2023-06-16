@@ -76,6 +76,7 @@ module vm 'modules/vm.bicep' = {
 }
 
 // Deploy the data factory.
+// ADF will be on non-working state until globals are being deployed
 module adf 'modules/data-factory.bicep' = {
   name: 'adf'
   params: {
@@ -87,6 +88,7 @@ module adf 'modules/data-factory.bicep' = {
 }
 
 // Deploy ADF globals
+// ACR and ACI has dependencies to adf => Globals are missing during deployment
 module dataFactoryGlobals 'modules/data-factory-globals.bicep' = {
   name: 'adf-globals'
   params: {
