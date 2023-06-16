@@ -45,5 +45,4 @@ output containerRegistryName string = containerRegistry.name
 output containerImageName string = containerImageName
 output containerImageTag string = containerImageTag
 output loginServer string = containerRegistry.properties.loginServer
-output username string = containerRegistry.listCredentials().username
-output password string = containerRegistry.listCredentials().passwords[0].value
+output id string = containerRegistry.id

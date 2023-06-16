@@ -1,9 +1,6 @@
 @description('Required. Name for the container group.')
 param name string
 
-@description('Required. The containers and their respective config within the container group.')
-param containers array
-
 @description('Conditional. Ports to open on the public IP address. Must include all ports assigned on container level. Required if `ipAddressType` is set to `public`.')
 param ipAddressPorts array = []
 
@@ -24,9 +21,6 @@ param restartPolicy string = 'Always'
 ])
 @description('Optional. Specifies if the IP is exposed to the public internet or private VNET. - Public or Private.')
 param ipAddressType string = 'Public'
-
-@description('Optional. The image registry credentials by which the container group is created from.')
-param imageRegistryCredentials array = []
 
 @description('Optional. Location for all Resources.')
 param location string = resourceGroup().location
@@ -98,12 +92,88 @@ param cMKKeyVersion string = ''
 @description('Conditional. User assigned identity to use when fetching the customer managed key. Required if \'cMKKeyName\' is not empty.')
 param cMKUserAssignedIdentityResourceId string = ''
 
+param irNodeRemoteAccessPort int
+param irNodeExpirationTime int
+param image string
+param acrId string
+param adfId string
+param irID string
+
 var identityType = systemAssignedIdentity ? (!empty(userAssignedIdentities) ? 'SystemAssigned,UserAssigned' : 'SystemAssigned') : (!empty(userAssignedIdentities) ? 'UserAssigned' : 'None')
 
 var identity = identityType != 'None' ? {
   type: identityType
   userAssignedIdentities: !empty(userAssignedIdentities) ? userAssignedIdentities : null
 } : null
+
+var containers = [
+  {
+    name: '1'
+    properties: {
+      command: []
+      environmentVariables: [
+        {
+          name: 'AUTH_KEY'
+          secureValue: existingIr.listAuthKeys().authKey1
+        }
+        {
+          name: 'NODE_NAME'
+          value: 'demonode'
+        }
+        {
+          name: 'ENABLE_AE'
+          value: 'true'
+        }
+        {
+          name: 'HA_PORT'
+          value: irNodeRemoteAccessPort
+        }
+        {
+          name: 'AE_TIME'
+          value: irNodeExpirationTime
+        }
+        {
+          name: 'ENABLE_HA'
+          value: 'true'
+        }
+      ]
+      image: image
+      ports: [
+        {
+          port: 80
+          protocol: 'Tcp'
+        }
+        {
+          port: 443
+          protocol: 'Tcp'
+        }
+      ]
+      resources: {
+        requests: {
+          cpu: 4
+          memoryInGB: 8
+        }
+      }
+    }
+  }
+]
+
+resource existingAcr 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' existing = {
+  name: last(split(acrId, '/'))
+}
+
+@description('Optional. The image registry credentials by which the container group is created from.')
+var imageRegistryCredentials = [
+  {
+  server: existingAcr.properties.loginServer
+  username: existingAcr.listCredentials().username
+  password: existingAcr.listCredentials().passwords[0].value
+  }
+]
+
+resource existingIr 'Microsoft.DataFactory/factories/integrationRuntimes@2018-06-01' existing = {
+  name: '${last(split(adfId, '/'))}/${last(split(irID, '/'))}'
+}
 
 resource defaultTelemetry 'Microsoft.Resources/deployments@2021-04-01' = if (enableDefaultTelemetry) {
   name: 'pid-47ed15a6-730a-4827-bcb4-0fd963ffbd82-${uniqueString(deployment().name, location)}'

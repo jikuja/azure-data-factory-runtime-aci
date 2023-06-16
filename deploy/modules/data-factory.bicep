@@ -95,6 +95,8 @@ output dataFactoryName string = dataFactory.name
 
 output integrationRuntimeName string = integrationRuntimeName
 
-output irKey string = integrationRuntime.listAuthKeys().authKey1
-
 output msiId string = dataFactory.identity.principalId
+
+output id string = dataFactory.id
+
+output irid string = integrationRuntime.id
