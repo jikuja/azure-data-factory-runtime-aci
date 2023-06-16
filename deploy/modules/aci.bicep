@@ -95,9 +95,8 @@ param cMKUserAssignedIdentityResourceId string = ''
 param irNodeRemoteAccessPort int
 param irNodeExpirationTime int
 param image string
-param acrId string
-param adfId string
-param irID string
+param ir resource 'Microsoft.DataFactory/factories/integrationRuntimes@2018-06-01'
+param acr resource 'Microsoft.ContainerRegistry/registries@2023-01-01-preview'
 
 var identityType = systemAssignedIdentity ? (!empty(userAssignedIdentities) ? 'SystemAssigned,UserAssigned' : 'SystemAssigned') : (!empty(userAssignedIdentities) ? 'UserAssigned' : 'None')
 
@@ -114,7 +113,7 @@ var containers = [
       environmentVariables: [
         {
           name: 'AUTH_KEY'
-          secureValue: existingIr.listAuthKeys().authKey1
+          secureValue: ir.listAuthKeys().authKey1
         }
         {
           name: 'NODE_NAME'
@@ -158,22 +157,14 @@ var containers = [
   }
 ]
 
-resource existingAcr 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' existing = {
-  name: last(split(acrId, '/'))
-}
-
 @description('Optional. The image registry credentials by which the container group is created from.')
 var imageRegistryCredentials = [
   {
-  server: existingAcr.properties.loginServer
-  username: existingAcr.listCredentials().username
-  password: existingAcr.listCredentials().passwords[0].value
+  server: acr.properties.loginServer
+  username: acr.listCredentials().username
+  password: acr.listCredentials().passwords[0].value
   }
 ]
-
-resource existingIr 'Microsoft.DataFactory/factories/integrationRuntimes@2018-06-01' existing = {
-  name: '${last(split(adfId, '/'))}/${last(split(irID, '/'))}'
-}
 
 resource defaultTelemetry 'Microsoft.Resources/deployments@2021-04-01' = if (enableDefaultTelemetry) {
   name: 'pid-47ed15a6-730a-4827-bcb4-0fd963ffbd82-${uniqueString(deployment().name, location)}'

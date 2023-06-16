@@ -100,3 +100,5 @@ output msiId string = dataFactory.identity.principalId
 output id string = dataFactory.id
 
 output irid string = integrationRuntime.id
+
+output ir resource = integrationRuntime

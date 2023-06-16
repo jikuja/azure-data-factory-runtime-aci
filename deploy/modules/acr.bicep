@@ -10,7 +10,7 @@ param location string  = resourceGroup().location
 @description('Trigger buildTask')
 param triggerBuildTask bool = false
 
-resource containerRegistry 'Microsoft.ContainerRegistry/registries@2021-06-01-preview' = {
+resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' = {
   name: name
   location: location
   sku: {
@@ -49,3 +49,4 @@ output containerImageName string = containerImageName
 output containerImageTag string = containerImageTag
 output loginServer string = containerRegistry.properties.loginServer
 output id string = containerRegistry.id
+output acr resource = containerRegistry

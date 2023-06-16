@@ -139,9 +139,8 @@ module aci 'modules/aci.bicep' = {
     irNodeRemoteAccessPort: irNodeRemoteAccessPort
     irNodeExpirationTime: irNodeExpirationTime
     image: image
-    acrId: acr.outputs.id
-    adfId: adf.outputs.id
-    irID: adf.outputs.irid
+    ir: adf.outputs.ir
+    acr: acr.outputs.acr
   }
 }
 
