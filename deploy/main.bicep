@@ -32,12 +32,16 @@ param vmAdminPassword string
 @description('The name of ACI to create. This must be globally unique.')
 param aciName string = 'shir${uniqueString(resourceGroup().id)}'
 
+@description('Trigger buildTask')
+param triggerBuildTask bool = false
+
 // Deploy the container registry and build the container image.
 module acr 'modules/acr.bicep' = {
   name: 'acr'
   params: {
     name: containerRegistryName
     location: location
+    triggerBuildTask: triggerBuildTask
   }
 }
 
