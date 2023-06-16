@@ -93,12 +93,12 @@ Because of the template simplifications Azure deployment resource(s) will contai
 
 To fix above-mentioned security related issues main.bicep and aci.bicep require some major refactoring.
 
-**Template refactoring**
+#### Template refactoring
 Templates should be refactored not to
 * return sensitive data as module outputs
 * not to pass sensitve data to unsecured module inputs
 
-**ACI/ACR**
+#### ACI/ACR
 ACI/ACR has two potential fixes:
 * Use recommended credential to pull images
   * service principals. This required refactoring to avoid unsecured module inputs
@@ -108,7 +108,7 @@ Alternative approach is to continue using ACI admin username and password and re
 
 Other alternative approach is to use [repository-scoped tokens](https://learn.microsoft.com/en-gb/azure/container-registry/container-registry-repository-scoped-permissions) with ACI
 
-**ACI/ADF IR key**
+#### ACI/ADF IR key
 This can be implemented with template refactoring. 
 
 Implementation will be easier as soon as Bicep allows passing resources to/from modules.
