@@ -113,7 +113,8 @@ var containers = [
       environmentVariables: [
         {
           name: 'AUTH_KEY'
-          secureValue: ir.listAuthKeys().authKey1
+          //secureValue: ir.listAuthKeys().authKey1
+          secureValue: listAuthKeys(ir.id, ir.apiVersion).authKey1
         }
         {
           name: 'NODE_NAME'
@@ -161,8 +162,10 @@ var containers = [
 var imageRegistryCredentials = [
   {
   server: acr.properties.loginServer
-  username: acr.listCredentials().username
-  password: acr.listCredentials().passwords[0].value
+  //username: acr.listCredentials().username
+  username: listCredentials(acr.id, acr.apiVersion).username
+  //password: acr.listCredentials().passwords[0].value
+  password: listCredentials(acr.id, acr.apiVersion).passwords[0].value
   }
 ]
 
