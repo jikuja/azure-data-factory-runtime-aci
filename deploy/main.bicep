@@ -32,12 +32,16 @@ param vmAdminPassword string
 @description('The name of ACI to create. This must be globally unique.')
 param aciName string = 'shir${uniqueString(resourceGroup().id)}'
 
+@description('Trigger buildTask')
+param triggerBuildTask bool = true
+
 // Deploy the container registry and build the container image.
 module acr 'modules/acr.bicep' = {
   name: 'acr'
   params: {
     name: containerRegistryName
     location: location
+    triggerBuildTask: triggerBuildTask
   }
 }
 
@@ -72,6 +76,7 @@ module vm 'modules/vm.bicep' = {
 }
 
 // Deploy the data factory.
+// ADF will be on non-working state until globals are being deployed
 module adf 'modules/data-factory.bicep' = {
   name: 'adf'
   params: {
@@ -83,6 +88,7 @@ module adf 'modules/data-factory.bicep' = {
 }
 
 // Deploy ADF globals
+// ACR and ACI has dependencies to adf => Globals are missing during deployment
 module dataFactoryGlobals 'modules/data-factory-globals.bicep' = {
   name: 'adf-globals'
   params: {
@@ -114,57 +120,6 @@ module aci 'modules/aci.bicep' = {
     location: location
     // Fails if enabled: 'Managed service identity is not supported for Windows container groups.'
     systemAssignedIdentity: false
-    containers: [
-      {
-        name: '1'
-        properties: {
-          command: []
-          environmentVariables: [
-            {
-              name: 'AUTH_KEY'
-              secureValue: adf.outputs.irKey
-            }
-            {
-              name: 'NODE_NAME'
-              value: 'demonode'
-            }
-            {
-              name: 'ENABLE_AE'
-              value: 'true'
-            }
-            {
-              name: 'HA_PORT'
-              value: irNodeRemoteAccessPort
-            }
-            {
-              name: 'AE_TIME'
-              value: irNodeExpirationTime
-            }
-            {
-              name: 'ENABLE_HA'
-              value: 'true'
-            }
-          ]
-          image: image
-          ports: [
-            {
-              port: 80
-              protocol: 'Tcp'
-            }
-            {
-              port: 443
-              protocol: 'Tcp'
-            }
-          ]
-          resources: {
-            requests: {
-              cpu: 4
-              memoryInGB: 8
-            }
-          }
-        }
-      }
-    ]
     ipAddressType: 'Private'
     subnetId: vnet.outputs.aciSubnetResourceId
     ipAddressPorts: [
@@ -180,17 +135,15 @@ module aci 'modules/aci.bicep' = {
     osType: 'Windows'
     restartPolicy: 'OnFailure'
     sku: 'Standard'
-    // No support for MSI, service principal requires too much work for being demo
-    imageRegistryCredentials: [
-      {
-        server: acr.outputs.loginServer
-        username: acr.outputs.username
-        password: acr.outputs.password
-      }
-    ]
+
+    irNodeRemoteAccessPort: irNodeRemoteAccessPort
+    irNodeExpirationTime: irNodeExpirationTime
+    image: image
+    acrId: acr.outputs.id
+    adfId: adf.outputs.id
+    irID: adf.outputs.irid
   }
 }
-
 
 module adfRoleAssignments 'modules/data-factory-role-assingments.bicep' = {
   name: 'adfRoleAssignments'

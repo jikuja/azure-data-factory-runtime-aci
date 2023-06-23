@@ -7,6 +7,9 @@ param skuName string = 'Standard'
 @description('The location into which the Azure resources should be deployed.')
 param location string  = resourceGroup().location
 
+@description('Trigger buildTask')
+param triggerBuildTask bool = false
+
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2021-06-01-preview' = {
   name: name
   location: location
@@ -22,7 +25,7 @@ resource containerRegistry 'Microsoft.ContainerRegistry/registries@2021-06-01-pr
 var containerImageName = 'adf/shir'
 var containerImageTag = 'v3'
 var dockerfileSourceGitRepository = 'https://github.com/Azure/Azure-Data-Factory-Integration-Runtime-in-Windows-Container.git'
-resource buildTask 'Microsoft.ContainerRegistry/registries/taskRuns@2019-06-01-preview' = {
+resource buildTask 'Microsoft.ContainerRegistry/registries/taskRuns@2019-06-01-preview' = if (triggerBuildTask) {
   parent: containerRegistry
   name: 'buildTask'
   properties: {
@@ -45,5 +48,4 @@ output containerRegistryName string = containerRegistry.name
 output containerImageName string = containerImageName
 output containerImageTag string = containerImageTag
 output loginServer string = containerRegistry.properties.loginServer
-output username string = containerRegistry.listCredentials().username
-output password string = containerRegistry.listCredentials().passwords[0].value
+output id string = containerRegistry.id
