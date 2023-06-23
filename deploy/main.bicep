@@ -33,7 +33,7 @@ param vmAdminPassword string
 param aciName string = 'shir${uniqueString(resourceGroup().id)}'
 
 @description('Trigger buildTask')
-param triggerBuildTask bool = false
+param triggerBuildTask bool = true
 
 // Deploy the container registry and build the container image.
 module acr 'modules/acr.bicep' = {

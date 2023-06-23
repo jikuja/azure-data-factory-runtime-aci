@@ -49,7 +49,7 @@ Next, initiate the deployment of the Bicep file. The only mandatory parameter is
 az deployment group create \
   --resource-group SHIR \
   --template-file deploy/main.bicep \
-  --parameters 'vmAdminPassword=<YOUR-VM-ADMIN-PASSWORD>' 'triggerBuildTask=true' ['irNodeExpirationTime=<TIME-IN-SECONDS>']
+  --parameters 'vmAdminPassword=<YOUR-VM-ADMIN-PASSWORD>' ['irNodeExpirationTime=<TIME-IN-SECONDS>'] ['triggerBuildTask=<true/false>']
 ```
 
 where the optional parameter `irNodeExpirationTime` specifies the time in seconds when the offline nodes expire after App Service stops or restarts. The expired nodes will be removed automatically during next restarting. The minimum expiration time, as well as the default value, is 600 seconds (10 minutes).
