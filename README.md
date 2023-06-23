@@ -1,7 +1,3 @@
-> :warning: :warning: :warning: :warning: :warning:
-> 
-> Before deploying this to any public or multi-user environment please read [Security](#Security) section.
-
 # Azure Data Factory self-hosted integration runtime in Azure Container Instances(ACI) service
 
 This sample illustrates how to host an [Azure Data Factory self-hosted integration runtime](https://docs.microsoft.com/azure/data-factory/concepts-integration-runtime) in Azure Container Instances service.
@@ -53,12 +49,12 @@ Next, initiate the deployment of the Bicep file. The only mandatory parameter is
 az deployment group create \
   --resource-group SHIR \
   --template-file deploy/main.bicep \
-  --parameters 'vmAdminPassword=<YOUR-VM-ADMIN-PASSWORD>' ['irNodeExpirationTime=<TIME-IN-SECONDS>']
+  --parameters 'vmAdminPassword=<YOUR-VM-ADMIN-PASSWORD>' 'triggerBuildTask=true' ['irNodeExpirationTime=<TIME-IN-SECONDS>']
 ```
 
 where the optional parameter `irNodeExpirationTime` specifies the time in seconds when the offline nodes expire after App Service stops or restarts. The expired nodes will be removed automatically during next restarting. The minimum expiration time, as well as the default value, is 600 seconds (10 minutes).
 
-The deployment takes approximately 30-45 minutes to complete. The majority of this time is the step to build the container image within Azure Container Registry.
+The deployment takes approximately 30-45 minutes to complete. The majority of this time is the step to build the container image within Azure Container Registry. To decrease deployment time after first deployment `triggerBuildTask` parameter can be changed to false to disable automated container build on the ACI.
 
 After the deployment completes, wait about another 10-15 minutes for App Service to deploy the container image. You can monitor the progress of this step by using the Deployment Center page on the App Service app resource in the Azure portal.
 
@@ -66,52 +62,22 @@ To test the deployment when it's completed:
 
 1. Open the Azure portal, navigate to the resource group (named *SHIR* by default), and open the data factory.
 1. Select **Open Azure Data Factory Studio**. A separate page opens up in your browser.
-1. On the left navigation bar, select **Manage**, and then select **Integration runtimes**. Look at the **self-hosted-runtime** item. The status should show as *Available*. If it says *Unavailable*, it probably means the container is still starting. Wait a few minutes and refresh the list.
 1. On the left navigation bar, select **Author**.
-1. TODO: refactor text for multiple pipelines:
-  1. Under **Pipelines**, select **Start ACI**.
-1. Under **Pipelines**, select **sample-pipeline**. The pipeline opens. There's a single task named *GetWebContent*.
-1. On the toolbar, select **Debug** to start the pipeline running. The run appears in the bottom pane. Wait a few moments and select the refresh button on the bottom pane's toolbar.
-1. The task shows the *Succeeded* status. This means the self-hosted integration runtime successfully connected to the web server on the virtual machine and accessed its data.
+1. Invoke Azure Data Factory pipelines
+  1. Under **Pipelines**, select **Start ACI**. On the toolbar, select **Debug** to start the pipeline running.
+    1. The task shows the *Succeeded* status. This means the self-hosted integration runtime is running and successfully connected with Azure Data Factory service. SHIR is available for other pipelines.
+  1. Under **Pipelines**, select **sample-pipeline**. On the toolbar, select **Debug** to start the pipeline running.
+    1. The task shows the *Succeeded* status. This means the self-hosted integration runtime successfully connected to the web server on the virtual machine and accessed its data.
 
 ## Security
 
-To simplify templating sensitive data is passed as module output values and in unsecured Bicep module inputs:
-* Integration runtime key
-* ACI admin username and password
-
-To simplify templating ACI admin username and password are used instead instead of service principal:
+To simplify templating ACI admin username and password are used:
 * Linux container on ACI [support](https://learn.microsoft.com/en-us/azure/container-instances/using-azure-container-registry-mi)  ACI with MSI. Windows containers do not support MSI at all
 * The recommended alternative login credentials for ACI is service principal:
   * [ACI documentation](https://learn.microsoft.com/en-us/azure/container-instances/container-instances-using-azure-container-registry)
   * [ACR documentation](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-auth-service-principal)
   * Conflicting [ACR documentation](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-auth-aci) mentions usage of service principals only for ACI
 
-Because of the template simplifications Azure deployment resource(s) will contain credentials on their outputs and therefore this template should not be used for production deployments.
-
-### Proposed changes
-
-To fix above-mentioned security related issues main.bicep and aci.bicep require some major refactoring.
-
-#### Template refactoring
-Templates should be refactored not to
-* return sensitive data as module outputs
-* not to pass sensitve data to unsecured module inputs
-
-#### ACI/ACR
-ACI/ACR has two potential fixes:
-* Use recommended credential to pull images
-  * service principals. This required refactoring to avoid unsecured module inputs
-  * or wait for proper MSI support
-
-Alternative approach is to continue using ACI admin username and password and refactor template not to pass credentials as module output and as unsecured module input.
-
-Other alternative approach is to use [repository-scoped tokens](https://learn.microsoft.com/en-gb/azure/container-registry/container-registry-repository-scoped-permissions) with ACI
-
-#### ACI/ADF IR key
-This can be implemented with template refactoring. 
-
-Implementation will be easier as soon as Bicep allows passing resources to/from modules.
 
 ## Note
 
@@ -125,3 +91,4 @@ TODO: comments about AKS. New free tier allows running small Kubbernetes cluster
 
 * Test if ACI can pull images through a VNet-integrated container registry
 * Refactor templating when Bicep support resources as module inputs and outputs
+* MSI support as soon as Windows ACI supports MSI
